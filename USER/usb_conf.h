@@ -135,8 +135,8 @@
 /****************** USB OTG HS CONFIGURATION **********************************/
 #ifdef USB_OTG_HS_CORE
  #define RX_FIFO_HS_SIZE                          512
- #define TX0_FIFO_HS_SIZE                         256
- #define TX1_FIFO_HS_SIZE                          16
+ #define TX0_FIFO_HS_SIZE                         128
+ #define TX1_FIFO_HS_SIZE                          64
  #define TX2_FIFO_HS_SIZE                           0
  #define TX3_FIFO_HS_SIZE                           0
  #define TX4_FIFO_HS_SIZE                           0

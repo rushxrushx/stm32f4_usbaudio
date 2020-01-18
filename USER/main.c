@@ -24,7 +24,10 @@ int main(void)
 	LED4=1;
 	APWR_EN;
 	
-	printf("USB waiting... \n");//提示正在建立连接 	
+	// 清除屏幕
+	printf("\033[2J");
+	
+	printf("USB waiting... \r\n");//提示正在建立连接 	
 	    
 
 #ifdef USE_USB_OTG_FS  		
@@ -43,11 +46,11 @@ int main(void)
 		if(Divece_STA!=bDeviceState)//状态改变了
 		{
 			if(bDeviceState==1)
-			{printf("USB Connected.\n");//提示USB连接已经建立
+			{printf("USB Connected.\r\n");//提示USB连接已经建立
 			LED2=1;
 			}
 			else
-			{printf("USB DisConnected.\n");//提示USB连接失败
+			{printf("USB DisConnected.\r\n");//提示USB连接失败
 			LED2=0;
 			}
 			Divece_STA=bDeviceState;
@@ -62,6 +65,11 @@ int main(void)
 		{
 			LED4=1;LED3=0;overrun_counter=0;underrun_counter=0;
 		}
+		
+		// 隐藏光标
+		printf("\033[?25l");
+		printf("\rfb_succ:%d",fb_success);
+		printf(",fb_fail:%d",fb_incomplt);
 
 	} 
 }

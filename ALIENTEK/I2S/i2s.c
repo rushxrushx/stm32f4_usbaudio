@@ -94,8 +94,10 @@ u32 i2sclk;
   SPIx->I2SCFGR = tmpreg;
 }
 
- 
-//spi3 gpio
+#ifndef USE_USB_OTG_HS 
+//full speed usb,401
+//spi2 gpio
+
 void I2s_GPInit(void)
 {
 	GPIO_InitTypeDef  GPIO_InitStructure;
@@ -104,7 +106,7 @@ void I2s_GPInit(void)
 	  
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA|RCC_AHB1Periph_GPIOB|RCC_AHB1Periph_GPIOC, ENABLE);
      
-	/* Connect pins to I2S peripheral  */
+	// Connect pins to I2S peripheral 
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource12, GPIO_AF_SPI2);
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource13, GPIO_AF_SPI2);
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource15, GPIO_AF_SPI2);
@@ -123,9 +125,8 @@ void I2s_GPInit(void)
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
 	GPIO_Init(GPIOC, &GPIO_InitStructure);
    
-
-} 
-
+}
+ 
 //I2S2初始化
 
 //参数I2S_Standard: @SPI_I2S_Standard  I2S标准,
@@ -160,11 +161,78 @@ void I2S2_Reconf(uint32_t samplerate)
 	
 
 }
+#else
+//I2S3初始化
+
+//参数I2S_Standard: @SPI_I2S_Standard  I2S标准,
+//I2S_Standard_Phillips,飞利浦标准;
+//I2S_Standard_MSB,MSB对齐标准(右对齐);
+//I2S_Standard_LSB,LSB对齐标准(左对齐);
+//I2S_Standard_PCMShort,I2S_Standard_PCMLong:PCM标准
+//参数I2S_Mode: @SPI_I2S_Mode  I2S_Mode_SlaveTx:从机发送;I2S_Mode_SlaveRx:从机接收;I2S_Mode_MasterTx:主机发送;I2S_Mode_MasterRx:主机接收;
+//参数I2S_Clock_Polarity  &SPI_I2S_Clock_Polarity:  I2S_CPOL_Low,时钟低电平有效;I2S_CPOL_High,时钟高电平有效
+//参数I2S_DataFormat：@SPI_I2S_Data_Format :数据长度,I2S_DataFormat_16b,16位标准;I2S_DataFormat_16bextended,16位扩展(frame=32bit);I2S_DataFormat_24b,24位;I2S_DataFormat_32b,32位.
+void I2S2_Reconf(uint32_t samplerate)
+{
+  I2S_InitTypeDef I2S_InitStructure;
+	
+
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_SPI3, ENABLE);//使能SPI2时钟
+	
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3,ENABLE); //复位SPI2
+	RCC_APB1PeriphResetCmd(RCC_APB1Periph_SPI3,DISABLE);//结束复位
+  
+	I2S_InitStructure.I2S_Mode=I2S_Mode_MasterTx;
+	I2S_InitStructure.I2S_Standard=I2S_Standard_Phillips;
+	I2S_InitStructure.I2S_DataFormat=I2S_DataFormat_32b;
+	I2S_InitStructure.I2S_MCLKOutput=I2S_MCLKOutput_Disable;//主时钟输出
+	I2S_InitStructure.I2S_AudioFreq=samplerate;
+	I2S_InitStructure.I2S_CPOL=I2S_CPOL_Low;//空闲状态时钟电平
+	I2S_Init_E(SPI3,&I2S_InitStructure);//初始化IIS
+
+ 
+	SPI_I2S_DMACmd(SPI3,SPI_I2S_DMAReq_Tx,ENABLE);//SPI2 TX DMA请求使能.
+	I2S_Cmd(SPI3,ENABLE);//SPI2 I2S EN使能.
+	
+}
+
+  
+//spi3 gpio
+void I2s_GPInit(void)
+{
+	GPIO_InitTypeDef  GPIO_InitStructure;
+
+      RCC_I2SCLKConfig(RCC_I2S2CLKSource_Ext);/////必须在使用前设置
+	  
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA|RCC_AHB1Periph_GPIOB|RCC_AHB1Periph_GPIOC, ENABLE);
+     
+	
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+
+	/* Connect pins to I2S peripheral  */
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource15, GPIO_AF_SPI3);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource3, GPIO_AF_SPI3);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF_I2S3ext);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource5, GPIO_AF_SPI3);
+   GPIO_PinAFConfig(GPIOC, GPIO_PinSource9, GPIO_AF_SPI2);//ckin
+
+	/* I2S3S_WS */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_15;
+	GPIO_Init(GPIOA, &GPIO_InitStructure);
+	/* I2S3_CK, I2S3_SD, I2S3ext_SD */
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5;
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
 
 
+   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_9;
+   GPIO_Init(GPIOC, &GPIO_InitStructure);
+   
+} 
 
-
-
+#endif
 
 
 

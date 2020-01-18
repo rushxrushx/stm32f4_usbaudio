@@ -1670,12 +1670,11 @@ USB_OTG_STS USB_OTG_EPStartXfer(USB_OTG_CORE_HANDLE *pdev , USB_OTG_EP *ep)
       }
     }
     
-    
     if (ep->type == EP_TYPE_ISOC)
     {
       dsts.d32 = USB_OTG_READ_REG32(&pdev->regs.DREGS->DSTS);
       
-      if (((dsts.b.soffn)&0x1) == 0)
+      if (((dsts.b.soffn)&0x1) == 1)
       {
         depctl.b.setd1pid = 1;
       }
@@ -1688,12 +1687,14 @@ USB_OTG_STS USB_OTG_EPStartXfer(USB_OTG_CORE_HANDLE *pdev , USB_OTG_EP *ep)
     /* EP enable, IN data in FIFO */
     depctl.b.cnak = 1;
     depctl.b.epena = 1;
+	
     USB_OTG_WRITE_REG32(&pdev->regs.INEP_REGS[ep->num]->DIEPCTL, depctl.d32);
     
-    if ((pdev->cfg.dma_enable == 0)&&(ep->type == EP_TYPE_ISOC))//加上非DMA模式判断
+    if (ep->type == EP_TYPE_ISOC)
     {
-      USB_OTG_WritePacket(pdev, ep->xfer_buff, ep->num, ep->xfer_len);   
-    }    
+      USB_OTG_WritePacket(pdev, ep->xfer_buff, ep->num, ep->xfer_len);  //有判断，DMA模式不会写进去 
+    }   
+	
   }
   else
   {

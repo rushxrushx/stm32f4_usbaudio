@@ -1,22 +1,18 @@
-//////////////////////////////////////////////////////////////////////////////////	 
-
 //USB声卡播放程序   
 //By Rush,personal use only! 仅供学习，禁止商用
-
-////////////////////////////////////////////////////////////////////////////////// 	
 #include "usbd_audio_play.h"
 #include "usbd_audio_core.h"
 #include "i2s.h"
 #include "gpio.h"
  
-u8 volume=0;								//当前音量  
-u32 working_samplerate=44100;				//当前采样频率
-u8 audiostatus=0;							//bit0:0,暂停播放;1,继续播放   
-u16 Play_ptr=0;							//即将播放的音频帧缓冲编号
-u16 Write_ptr=0;							//当前保存到的音频缓冲编号 
+u8 audiovolume=0; 
+vu8 audiostatus=0;							//bit0:0,暂停播放;1,继续播放  
+vu32 working_samplerate=44100;	//当前采样频率 
+vu16 Play_ptr=0;								//即将播放的音频帧缓冲编号
+vu16 Write_ptr=0;							//当前保存到的音频缓冲编号 
 u32 underrun_counter=0;
 u32 const i2s_BUFSIZE=4000;								
-u32 i2s_buf[i2s_BUFSIZE+1]; 					//音频缓冲
+u32 i2s_buf[i2s_BUFSIZE+2]; 	//音频缓冲
 
 #ifndef USE_USB_OTG_HS 
 //full speed usb,401 --->> spi2 

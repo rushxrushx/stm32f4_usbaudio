@@ -51,8 +51,8 @@
   * @{
   */ 
 
-
-#define AUDIO_OUT_PKTSIZE                             582
+//#define AUDIO_OUT_PKTSIZE                             516
+#define AUDIO_OUT_PKTSIZE                             588
 
 #define AUDIO_CONFIG_DESC_SIZE                        127
 #define AUDIO_INTERFACE_DESC_SIZE                     9
@@ -125,6 +125,10 @@
 extern USBD_Class_cb_TypeDef  AUDIO_cb;
 extern u32 overrun_counter;
 extern u8 alt_setting_now;
+
+extern u32 fb_success;
+extern u32 fb_incomplt;
+extern u32 rx_incomplt;
 /**
   * @}
   */ 

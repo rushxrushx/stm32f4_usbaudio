@@ -1,4 +1,4 @@
-﻿#include "usbd_usr.h" 
+#include "usbd_usr.h" 
 #include "usb_dcd_int.h"
 #include <stdio.h> 
 #include <usart.h> 
@@ -86,13 +86,13 @@ void USBD_USR_DeviceReset (uint8_t speed)
 	switch (speed)
 	{
 		case USB_OTG_SPEED_HIGH:
-			printf("USB Device Library v1.1.0  [HS]\r\n");
+			printf("DeviceReset [HS]\r\n");
 			break; 
 		case USB_OTG_SPEED_FULL: 
-			printf("USB Device Library v1.1.0  [FS]\r\n");
+			printf("DeviceReset [FS]\r\n");
 			break;
 		default:
-			printf("USB Device Library v1.1.0  [??]\r\n"); 
+			printf("DeviceReset [??]\r\n"); 
 			break;
 	}
 }
@@ -100,7 +100,7 @@ void USBD_USR_DeviceReset (uint8_t speed)
 void USBD_USR_DeviceConfigured (void)
 {
 	bDeviceState=1;
-	printf("MSC Interface started.\r\n"); 
+	printf("DeviceConfigured.\r\n"); 
 } 
 //USB Device挂起
 void USBD_USR_DeviceSuspended(void)
