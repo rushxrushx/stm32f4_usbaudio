@@ -403,6 +403,8 @@ u8 tmplist[4];
 		EVAL_AUDIO_Stop();//停止播放，并清空缓存，防止显示红灯
 		Play_ptr=0;
 		Write_ptr=0;
+		overrun_counter=0;
+		underrun_counter=0;
 		if(tmpfreq==44100) working_samplerate=44100;
 		if(tmpfreq==96000) working_samplerate=96000;
 		if(tmpfreq==88200) working_samplerate=88200;
@@ -570,8 +572,9 @@ vu16 data_remain;
 //帧首中断(SOF)
 static uint8_t  usbd_audio_SOF (void *pdev)
 {	
-
+	if(alt_setting_now){
 	DCD_EP_Tx(pdev, AUDIO_IN_EP, fb_buf, 3);
+	}
   return USBD_OK;
 }
 
