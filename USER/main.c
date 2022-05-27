@@ -67,9 +67,9 @@ int main(void)
 		}
 		
 		// 隐藏光标
-		printf("\033[?25l");
-		printf("\rfb_succ:%d",fb_success);
-		printf(",fb_fail:%d",fb_incomplt);
+		//printf("\033[?25l");
+		//printf("\rfb_succ:%d",fb_success);
+		//printf(",fb_fail:%d",fb_incomplt);
 
 	} 
 }

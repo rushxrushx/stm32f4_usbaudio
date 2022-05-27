@@ -1,5 +1,3 @@
-//USB声卡程序   
-//By Rush,personal use only! 仅供学习，禁止商用
 /* Includes ------------------------------------------------------------------*/
 
 #include "usbd_audio_core.h"
@@ -21,8 +19,7 @@ static uint8_t  usbd_audio_OUT_Incplt (void  *pdev);  //收数据未成功
 /*********************************************
    AUDIO Requests management functions
  *********************************************/
-static void AUDIO_Req_GetCurrent(void *pdev, USB_SETUP_REQ *req);
-static void AUDIO_Req_SetCurrent(void *pdev, USB_SETUP_REQ *req);
+static void AUDIOCLASS_REQ(void *pdev, USB_SETUP_REQ *req);
 static uint8_t  *USBD_audio_GetCfgDesc (uint8_t speed, uint16_t *length);
 
 
@@ -34,19 +31,19 @@ static uint8_t  *USBD_audio_GetCfgDesc (uint8_t speed, uint16_t *length);
 // 接收数据包临时缓冲区，相当于103的PMA
 u32 IsocOutBuff [AUDIO_OUT_PKTSIZE / 4];   //以整数为单位，拒绝左右声道错乱
                                            //AUDIO_OUT_PKTSIZE u8 , 这里是u32 所以除以4
-u8 fb_buf[4];
-u8 alt_setting_now=0;
 u32 overrun_counter=0;
 u32 fb_success=0;
 u32 fb_incomplt=0;
 u32 rx_incomplt=0;
+u8 fb_buf[4];
+u8 alt_setting_now=0;
+u8 audioIsMute=0;
+u8 audioVol=100; 
 
 /* Main Buffer for Audio Control Rrequests transfers and its relative variables */
 uint8_t  AudioCtl[64];
-uint8_t  AudioCtlCmd = 0;
-uint32_t AudioCtlLen = 0;
-uint8_t  AudioCtlIndex = 0;
-
+uint8_t  AudioCtlReq = 0;
+uint8_t  AudioCtlCS = 0;
 
 #include "gpio.h"
 
@@ -311,21 +308,9 @@ static uint8_t  usbd_audio_Setup (void  *pdev,
   {
     /* AUDIO Class Requests -------------------------------*/
   case USB_REQ_TYPE_CLASS :    
-    switch (req->bRequest)
-    {
-    case AUDIO_REQ_GET_CUR:
-      AUDIO_Req_GetCurrent(pdev, req);
-      break;
-      
-    case AUDIO_REQ_SET_CUR:
-      AUDIO_Req_SetCurrent(pdev, req);   
-      break;
-
-    default:
-      USBD_CtlError (pdev, req);
-      return USBD_FAIL;
-    }
+        AUDIOCLASS_REQ(pdev, req);
     break;
+
     
     /* Standard Requests -------------------------------*/
   case USB_REQ_TYPE_STANDARD:
@@ -348,9 +333,7 @@ static uint8_t  usbd_audio_Setup (void  *pdev,
       break;
       
     case USB_REQ_GET_INTERFACE :
-      USBD_CtlSendData (pdev,
-                        (uint8_t *)&usbd_audio_AltSet,
-                        1);
+      USBD_CtlSendData (pdev,(uint8_t *)&usbd_audio_AltSet,1);
       break;
       
     case USB_REQ_SET_INTERFACE :		//switch alt settings
@@ -387,17 +370,156 @@ static uint8_t  usbd_audio_Setup (void  *pdev,
   return USBD_OK;
 }
 
+//audio class req
+static void AUDIOCLASS_REQ(void *pdev, USB_SETUP_REQ *req)
+{ 
+uint8_t req_type = 	req->bmRequest & 0x1f; /* Set the request type. See UAC Spec 1.0 - 5.2.1 Request Layout */
+uint8_t cmd = 		req->bRequest;//AUDIO_REQ_SET_CUR;          /* Set the request value */
+uint8_t len = 		(uint8_t)req->wLength;      /* data length */
+uint8_t unit = 		HIBYTE(req->wIndex);       /* target unit */
+uint8_t index = 	req->wIndex & 0xf;		/* endpoint number */
+uint8_t CS = 	HIBYTE(req->wValue);         /* control selector (high byte) */
+uint8_t CN = 	LOBYTE(req->wValue);         /* control number (low byte) */  
+
+//request to audio tune control --> FeatureUnit 0x2    0200:2号FU,通道0
+if (req_type == AUDIO_CONTROL_REQ  &&  unit == 0x2 ){
+  
+	if (CS == AUDIO_CONTROL_VOLUME && CN == 0) {
+    switch (cmd) {
+        case AUDIO_REQ_SET_CUR:
+          if (len)
+          {
+            /* Prepare the reception of the buffer over EP0 */
+            USBD_CtlPrepareRx (pdev, AudioCtl, len);
+    
+            /* Set the global variables indicating current request and its length 
+            to the function usbd_audio_EP0_RxReady() which will process the request */
+            AudioCtlReq = req_type;  
+            AudioCtlCS  = CS;
+          }
+          break;  
+
+        case AUDIO_REQ_SET_MAX:
+          break;
+        
+        case AUDIO_REQ_SET_MIN:
+          break;
+
+        case AUDIO_REQ_SET_RES:
+          break;	
+	
+        case AUDIO_REQ_GET_CUR:
+          AudioCtl[0] = audioVol;
+          break;
+
+        case AUDIO_REQ_GET_MAX:
+          AudioCtl[0] = 100;
+          break;
+        
+        case AUDIO_REQ_GET_MIN:
+          AudioCtl[0] = 0;
+          break;
+        
+        case AUDIO_REQ_GET_RES:
+          AudioCtl[0] = 1;
+          break;
+        
+        default:
+          USBD_CtlError (pdev, req);
+          return;
+		}	
+	
+	}
+	else if (CS == AUDIO_CONTROL_MUTE && CN == 0) {
+    switch (cmd) {
+        case AUDIO_REQ_SET_CUR:
+          if (len)
+          {
+            /* Prepare the reception of the buffer over EP0 */
+            USBD_CtlPrepareRx (pdev, AudioCtl, len);
+    
+            /* Set the global variables indicating current request and its length 
+            to the function usbd_audio_EP0_RxReady() which will process the request */
+            AudioCtlReq = req_type;  
+            AudioCtlCS  = CS;
+          }
+          break;
+		  
+        case AUDIO_REQ_GET_CUR:
+          AudioCtl[0] = audioIsMute;
+          break;
+        
+        default:
+          USBD_CtlError (pdev, req);
+          return;
+		}
+	}
+	else{
+		USBD_CtlError (pdev, req);
+        return;
+	}
+	
+	//audio class final, 如果需要回应get请求
+	if (cmd & AUDIO_REQ_GET_MASK) {
+		USBD_CtlSendData (pdev, AudioCtl, len);    
+		}
+	}
+	//else,request to endpoint,that EP is AUDIO_OUT_EP     0001:端点，1号端点
+	else if (req_type == AUDIO_STREAMING_REQ && index == AUDIO_OUT_EP) {
+      /* Frequency Control */
+		if (CS == AUDIO_STREAMING_REQ_FREQ_CTRL) {
+		switch (cmd) {
+			case AUDIO_REQ_SET_CUR:
+				/* Prepare the reception of the buffer over EP0 */
+				USBD_CtlPrepareRx (pdev, AudioCtl, len);
+		
+				/* Set the global variables indicating current request and its length 
+				to the function usbd_audio_EP0_RxReady() which will process the request */
+				AudioCtlReq = req_type;  
+				AudioCtlCS  = CS;
+				break;
+				
+			case AUDIO_REQ_GET_CUR:
+				AudioCtl[0] = (uint8_t)(working_samplerate);
+				AudioCtl[1] = (uint8_t)(working_samplerate >> 8);
+				AudioCtl[2] = (uint8_t)(working_samplerate >> 16);
+				USBD_CtlSendData (pdev,AudioCtl,3);
+				break;
+			
+			default:
+				USBD_CtlError (pdev, req);
+				return;					
+			
+			}
+		}
+	}
+	else
+		USBD_CtlError (pdev, req);
+	
+}
+
+
 
 //控制端点接收数据
 static uint8_t  usbd_audio_EP0_RxReady (void  *pdev)
-{ 
+{
 u32 tmpfreq=0;
-u8 tmplist[4];
-  /* Check if an AudioControl request has been issued */
-  if (AudioCtlCmd == AUDIO_REQ_SET_CUR)
-  {
-	 if ((AudioCtlIndex& 0xf) == AUDIO_OUT_EP) {    /* request to endpoint,0001:采样频率控制 */
-	 
+  
+	/* request to audio */
+	if (AudioCtlReq == AUDIO_CONTROL_REQ){
+		if (AudioCtlCS == AUDIO_CONTROL_VOLUME)
+		{
+			audioVol=AudioCtl[0];
+		}
+		else if (AudioCtlCS == AUDIO_CONTROL_MUTE)
+		{
+			audioIsMute=AudioCtl[0];
+		}
+	}	
+		
+	/* request to endpoint */  //采样频率控制
+	else if (AudioCtlReq == AUDIO_STREAMING_REQ && AudioCtlCS == AUDIO_STREAMING_REQ_FREQ_CTRL ){
+
 		tmpfreq=((AudioCtl[2]<<16)|(AudioCtl[1]<<8)|AudioCtl[0]);
 	 
 		EVAL_AUDIO_Stop();//停止播放，并清空缓存，防止显示红灯
@@ -409,40 +531,11 @@ u8 tmplist[4];
 		if(tmpfreq==96000) working_samplerate=96000;
 		if(tmpfreq==88200) working_samplerate=88200;
 		if(tmpfreq==48000) working_samplerate=48000;
-	 
-     }  
-	
-	else {			/* request to interface */
-		if (HIBYTE(AudioCtlIndex) == AUDIO_OUT_STREAMING_CTRL)//0200:静音控制
-		{
-	      audiovolume=AudioCtl[0];
-		}
-		else
-       USBD_CtlError (pdev, NULL);//stall
+		 
 	}
-          
-  }
-    if (AudioCtlCmd == AUDIO_REQ_GET_CUR)
-	{
-		if ((AudioCtlIndex& 0xf) == AUDIO_OUT_EP)	/* request to endpoint,0001:采样频率控制 */
-		{
-			tmplist[0]=(uint8_t)(working_samplerate);
-			tmplist[1]=(uint8_t)(working_samplerate >> 8);
-			tmplist[2]=(uint8_t)(working_samplerate >> 16);
-			USBD_CtlSendData (pdev,tmplist,3);
-		}
-		else {if (HIBYTE(AudioCtlIndex) == AUDIO_OUT_STREAMING_CTRL)//0200:静音控制
-			{
-					USBD_CtlSendData (pdev,&audiovolume,1);
-			}
-		else
-       USBD_CtlError (pdev, NULL);		
-		}
-	}
-  
 	/* Reset the AudioCtlCmd variable to prevent re-entering this function */
-	  AudioCtlCmd = 0;
-	  AudioCtlLen = 0; 
+	AudioCtlReq = 0;
+	AudioCtlCS = 0; 
   
   return USBD_OK;
 }
@@ -595,47 +688,8 @@ static uint8_t  usbd_audio_IN_Incplt (void  *pdev)
 /******************************************************************************
      AUDIO Class requests management
 ******************************************************************************/
-/**
-  * @brief  AUDIO_Req_GetCurrent
-  *         Handles the GET_CUR Audio control request.
-  * @param  pdev: instance
-  * @param  req: setup class request
-  * @retval status
-  */
-static void AUDIO_Req_GetCurrent(void *pdev, USB_SETUP_REQ *req)
-{  
-  /* Send the current mute state */
-  USBD_CtlSendData (pdev, 
-                    AudioCtl,
-                    req->wLength);
-}
 
-/**
-  * @brief  AUDIO_Req_SetCurrent
-  *         Handles the SET_CUR Audio control request.
-  * @param  pdev: instance
-  * @param  req: setup class request
-  * @retval status
-  */
-static void AUDIO_Req_SetCurrent(void *pdev, USB_SETUP_REQ *req)
-{ 
-  if (req->wLength)
-  {
-    /* Prepare the reception of the buffer over EP0 */
-    USBD_CtlPrepareRx (pdev, 
-                       AudioCtl,
-                       req->wLength);
-    
-    /* Set the global variables indicating current request and its length 
-    to the function usbd_audio_EP0_RxReady() which will process the request */
-    AudioCtlCmd = AUDIO_REQ_SET_CUR;     /* Set the request value */
-    AudioCtlLen = req->wLength;          /* Set the request data length */
-    AudioCtlIndex = req->wIndex;  /* Set the request target unit */
-  }
-  
-  
-        
-}
+
 
 /**
   * @brief  USBD_audio_GetCfgDesc 

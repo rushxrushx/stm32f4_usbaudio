@@ -2,8 +2,7 @@
 #define __STM324xG_USB_AUDIOCODEC_H
 
 #include "stm32f4xx.h" 
-
-extern u8 audiovolume;						 
+						 
 extern vu8 audiostatus;							//bit0:0,暂停播放;1,继续播放 
 extern vu32 working_samplerate;  
 extern vu16 Play_ptr;							//即将播放的音频帧缓冲编号

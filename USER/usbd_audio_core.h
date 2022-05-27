@@ -82,7 +82,9 @@
 #define AUDIO_OUTPUT_TERMINAL_DESC_SIZE               0x09
 #define AUDIO_STREAMING_INTERFACE_DESC_SIZE           0x07
 
-#define AUDIO_CONTROL_MUTE                            0x0001
+//#define AUDIO_CONTROL_MUTE                            0x0001
+#define AUDIO_CONTROL_MUTE                            0x01
+#define AUDIO_CONTROL_VOLUME                          0x02
 
 #define AUDIO_FORMAT_TYPE_I                           0x01
 
@@ -93,6 +95,28 @@
 #define AUDIO_REQ_SET_CUR                             0x01
 
 #define AUDIO_OUT_STREAMING_CTRL                      0x02
+
+/* Audio Control Requests */
+#define AUDIO_CONTROL_REQ                             0x01U
+/* Feature Unit, UAC Spec 1.0 p.102 */
+#define AUDIO_CONTROL_REQ_FU_MUTE                     0x01U
+#define AUDIO_CONTROL_REQ_FU_VOL                      0x02U
+
+/* Audio Streaming Requests */
+#define AUDIO_STREAMING_REQ                           0x02U
+#define AUDIO_STREAMING_REQ_FREQ_CTRL                 0x01U
+#define AUDIO_STREAMING_REQ_PITCH_CTRL                0x02U 
+
+#define AUDIO_REQ_GET_MASK                            0x80
+#define AUDIO_REQ_GET_CUR                             0x81
+#define AUDIO_REQ_GET_MIN                             0x82
+#define AUDIO_REQ_GET_MAX                             0x83
+#define AUDIO_REQ_GET_RES                             0x84
+
+#define AUDIO_REQ_SET_CUR                             0x01
+#define AUDIO_REQ_SET_MIN                             0x02
+#define AUDIO_REQ_SET_MAX                             0x03
+#define AUDIO_REQ_SET_RES                             0x04
 
 /**
   * @}

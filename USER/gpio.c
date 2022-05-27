@@ -6,7 +6,7 @@ void Board_Init(void)
 {    	 
   GPIO_InitTypeDef  GPIO_InitStructure;
 
-  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA|RCC_AHB1Periph_GPIOB, ENABLE);//使能GPIOx时钟
+  RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA|RCC_AHB1Periph_GPIOB|RCC_AHB1Periph_GPIOC, ENABLE);//使能GPIOx时钟
   
   GPIO_InitStructure.GPIO_Mode = GPIO_Mode_OUT;//普通输出模式
   GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;//推挽输出
@@ -24,6 +24,12 @@ void Board_Init(void)
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4| GPIO_Pin_5| GPIO_Pin_6;
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 
+//PC6:45MHZ,PC7:49MHZ
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+  GPIO_Init(GPIOC, &GPIO_InitStructure);
+  PCout(6)=0;
+  PCout(7)=0;
+
 //reset DAC
   DAC_DIS;
 
@@ -33,8 +39,8 @@ void Board_Init(void)
 }
 #endif
  
-//PCM1794 V0101带隔离主板	  
-#if HW_1794V1
+//205 board	  
+#if HW_205
 void Board_Init(void)
 {    	 
   GPIO_InitTypeDef  GPIO_InitStructure;
@@ -83,6 +89,7 @@ void Board_Init(void)
 //led:PA1-4
   GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4| GPIO_Pin_5| GPIO_Pin_6;
   GPIO_Init(GPIOA, &GPIO_InitStructure);
+  
 
 // PB8 VEE+DAC电源
 // PB9 模拟前端电源

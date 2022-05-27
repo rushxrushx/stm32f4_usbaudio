@@ -2,22 +2,13 @@
 
 
 /************************* PLL Parameters *************************************/
-
-//v4w子卡
-#if HW_401V4W
-#define PLL_M      4
-#else
-
 //PLL前置分频系数，产生 2MHZ VCO
 //rush: 假设输入12M,12/6=2 假设输入8m，8/4=2
 #define PLL_M      6
 
-#endif
-
 //PLL vco倍频系数
 //vco==晶振 / M x N 
 #define PLL_N      168
-
 
 //系统频率=晶振 / M x N / P
 //84MHZ时钟,2mhz*168/4=84mhz
@@ -197,7 +188,7 @@ static void SetSysClock(void)
 
   if ((RCC->CR & RCC_CR_HSERDY) != RESET)
   {
-    HSEStatus = (uint32_t)0x01;
+	HSEStatus = (uint32_t)0x01;
   }
   else
   {

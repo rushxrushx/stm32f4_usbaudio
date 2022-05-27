@@ -5,7 +5,6 @@
 #include "i2s.h"
 #include "gpio.h"
  
-u8 audiovolume=0; 
 vu8 audiostatus=0;							//bit0:0,暂停播放;1,继续播放  
 vu32 working_samplerate=44100;	//当前采样频率 
 vu16 Play_ptr=0;								//即将播放的音频帧缓冲编号
@@ -114,6 +113,7 @@ void EVAL_AUDIO_Stop(void)
 	DAC_DIS;
 	LEDOFF;
 	audiostatus=0;
+	if (alt_setting_now==0){overrun_counter=0;underrun_counter=0;}
 }
 
 
