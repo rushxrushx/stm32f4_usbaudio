@@ -5,7 +5,7 @@
 #include "usart.h"   
 #include "gpio.h"  
 #include "usbd_audio_core.h"
-#include "usbd_audio_play.h"
+#include "audio_out.h"
 #include "usbd_usr.h"
 #include "usb_conf.h" 	
 

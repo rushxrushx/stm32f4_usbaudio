@@ -1,7 +1,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "usbd_audio_core.h"
-#include "usbd_audio_play.h"
+#include "audio_out.h"
 
 /*********************************************
    AUDIO Device library callbacks

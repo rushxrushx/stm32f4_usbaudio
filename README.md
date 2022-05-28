@@ -1,28 +1,32 @@
-# 仅供个人使用，严禁商用Any Commercial use prohibited !!!
+###* CHEAPEST USB ASYNC AUDIO USING ST32F401RB CHIP *
 
-bugs now:
+####knows bugs:
 
-A.When some PC restart,hibrate,sleep,the card not found and must re-pluged.（某些电脑重启休眠后需要重新拔插才能识别
+1,if USB cable/plug is poor quality,audio may become noise when playing,and must stop or re-plug to fix it.
+It's cause by HW,and software cannot sence it happen,I think it cannot be fixed. 
 
-B.USB3.1 host through external usb3.0 hub,async feedback not successful tx to PC. direct connect to usb3.1 is ok.（USB3.1
-主机接上外部usb3.0HUB不能发回反馈，直接连接可以正常用。
+####2022.5.28
 
+HW seprate folder,(only ak4396 is work done now,other working in process).
 
-# 2019年12月最新F4 usb 异步声卡程序
+remove LICENSE,it's only for fun.
 
-1，外部双时钟，无需任何CPLD
+####2022.5.27
 
-2，支持 24bit 44.1/48/88.2/96k多种格式
+improve usb setup--audio class,fix mute/vol,
 
-3，支持XMOS驱动，win7自带驱动，各种linux
+####2019.12 
 
+add 24bit, add 48/88/96k audio streaming formats.
 
+fix audio buffer overflow 2words
 
-# 2019-12 updated stm32f4 usb async audio
+####initial release
 
-1,async clock with external clock input to stm32f4 series i2s_ckin pin,cpld device not required anymore.(see the schemaitcs for more infomation).
+support 32bit.44k format
 
-2,NEW support 24bit 44.1/48/88.2/96k audio streaming formats.
+async clock with external clock input to stm32f4 series i2s_ckin pin,cpld device not required anymore.
+(please see the schemaitcs for more infomation).
 
-3,working with "xmos stereo driver",win build-in driver,linux os.
+test with "xmos stereo driver",win10 build-in driver,linux.
 
