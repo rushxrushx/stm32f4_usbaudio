@@ -1,4 +1,4 @@
-﻿#include "sys.h"
+#include "sys.h"
 #include "usart.h"	
 ////////////////////////////////////////////////////////////////////////////////// 	 
 //如果使用ucos,则包括下面的头文件即可.
@@ -30,32 +30,17 @@
 //V1.5修改说明
 //1,增加了对UCOSII的支持
 ////////////////////////////////////////////////////////////////////////////////// 	  
- 
 
-//////////////////////////////////////////////////////////////////
-//加入以下代码,支持printf函数,而不需要选择use MicroLIB	  
-#if 1
-#pragma import(__use_no_semihosting)             
-//标准库需要的支持函数                 
-struct __FILE 
-{ 
-	int handle; 
-}; 
 
-FILE __stdout;       
-//定义_sys_exit()以避免使用半主机模式    
-_sys_exit(int x) 
-{ 
-	x = x; 
-} 
-//重定义fputc函数 
-int fputc(int ch, FILE *f)
-{ 	
-	while((USART1->SR&0X40)==0);//循环发送,直到发送完毕   
-	USART1->DR = (u8) ch;      
-	return ch;
-}
-#endif
+#define TX_LEN  	200
+u8	tx_write_p;
+u8	tx_read_p;
+u8 tx_ovr=0;
+u8 tx_runing=0;
+u8  tx_buf[TX_LEN+4];
+
+
+
  
 #if EN_USART1_RX   //如果使能了接收
 //串口1中断服务程序
@@ -103,8 +88,11 @@ void uart_init(u32 bound){
 	
 	USART_ClearFlag(USART1, USART_FLAG_TC);
 	
+	//USART_ITConfig(USART1, USART_IT_TXE, ENABLE);//开启相关中断
+	
 #if EN_USART1_RX	
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);//开启相关中断
+#endif
 
 	//Usart1 NVIC 配置
   NVIC_InitStructure.NVIC_IRQChannel = USART1_IRQn;//串口1中断通道
@@ -113,10 +101,83 @@ void uart_init(u32 bound){
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
 	NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器、
 
-#endif
-	
+	tx_write_p=0;
+	tx_read_p=0;
 }
 
+void tx_fill()
+{
+	vu8 next_p;
+	
+	if(tx_read_p!=tx_write_p)
+	{
+	tx_runing=1;
+	USART1->DR = (u8) tx_buf[tx_read_p]; 
+	
+		//计算next p
+	if (next_p < TX_LEN ) next_p=tx_read_p + 1 ;
+	else next_p=0;	
+	
+	tx_read_p=next_p;
+	}
+	else
+	{
+	USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
+	tx_runing=0;
+	}
+	
+
+
+
+}
+
+
+//////////////////////////////////////////////////////////////////
+//加入以下代码,支持printf函数,而不需要选择use MicroLIB	  
+#if 1
+#pragma import(__use_no_semihosting)             
+//标准库需要的支持函数                 
+struct __FILE 
+{ 
+	int handle; 
+}; 
+
+FILE __stdout;       
+//定义_sys_exit()以避免使用半主机模式    
+_sys_exit(int x) 
+{ 
+	x = x; 
+} 
+//重定义fputc函数 
+int fputc(int ch, FILE *f)
+{ 	
+	//while((USART1->SR&0X40)==0);//循环发送,直到发送完毕   
+	//USART1->DR = (u8) ch;      
+	
+	vu8 next_p;
+	//计算即将写入的位置
+	if (next_p < TX_LEN ) next_p=tx_write_p + 1 ;
+	else next_p=0;	
+	
+	if (next_p != tx_read_p ) 
+	{
+		tx_write_p=next_p;
+		tx_buf[tx_write_p]=(u8) ch; 
+	}
+	else
+	{
+	tx_ovr++;
+	}
+	
+	//开启发送
+	if(tx_runing==0) USART_ITConfig(USART1, USART_IT_TXE, ENABLE);;//tx_fill();
+	
+	return ch;
+}
+
+
+
+#endif
 
 void USART1_IRQHandler(void)                	//串口1中断服务程序
 {
@@ -124,6 +185,16 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 #ifdef OS_TICKS_PER_SEC	 	//如果时钟节拍数定义了,说明要使用ucosII了.
 	OSIntEnter();    
 #endif
+
+	if(USART_GetITStatus(USART1, USART_IT_TXE) != RESET)
+	{
+	tx_fill();
+	USART_ClearITPendingBit(USART1, USART_IT_TXE);
+	}	
+
+
+
+
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
 	{
 		Res =USART_ReceiveData(USART1);//(USART1->DR);	//读取接收到的数据
