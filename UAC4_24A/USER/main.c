@@ -16,7 +16,6 @@ int main(void)
 	u32 loscount=0;
 	
 	Board_Init();					//初始化LED 
-	LED_RED;
 	SEL_NONE;
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组2
 	uart_init(115200);		//初始化串口波特率为115200
@@ -56,18 +55,16 @@ int main(void)
 		if(alt_setting_now!=0)
 		{
 			cnt++;
-			if(cnt>50000)
+			if(cnt>100000)
 			{
 			cnt=0;
-			// 隐藏光标
-			printf("%c[2K", 27);
-			printf("\033[?25l");
-			printf("\rfbOk:%d",fb_success);
-			printf(",fbNG:%d",fb_incomplt);
-			printf(",LOS:%d",rx_incomplt);
-			printf(",buf:%d",data_remain);
-			printf(",ov:%d",overrun_counter);
-			printf(",UD:%d",underrun_counter);
+			printf("\rfbOk:%d,",fb_success);
+			printf("fbNG:%d,",fb_incomplt);
+			printf("LOS:%d,",rx_incomplt);
+			printf("buf:%d,",data_remain);
+			printf("ov:%d,",overrun_counter);
+			printf("UD:%d,",underrun_counter);
+			printf("    ");
 			los_cnt++;
 			if(los_cnt>1000){
 			los_cnt=0;
@@ -76,7 +73,7 @@ int main(void)
 			
 			}
 			if(fb_success<100){rx_incomplt=0;loscount=0;}//lost when start play is ignored.
-			if (overrun_counter||underrun_counter) {LED_RED;}//error LED mean out of buffer.
+			if ((overrun_counter>0)||(underrun_counter>0)) {LED_RED;}//error LED mean out of buffer.
 			else if(rx_incomplt>loscount)	{LED_YEL;}//warn LED mean lost package.
 			else LEDON;
 			

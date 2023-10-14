@@ -1,28 +1,6 @@
-/* Includes ------------------------------------------------------------------*/
-
 #include "usbd_audio_core.h"
 #include "audio_out.h"
 #include "gpio.h"
-
-/*********************************************
-   AUDIO Device library callbacks
- *********************************************/
-static uint8_t  usbd_audio_Init       (void  *pdev, uint8_t cfgidx);
-static uint8_t  usbd_audio_DeInit     (void  *pdev, uint8_t cfgidx);
-static uint8_t  usbd_audio_Setup      (void  *pdev, USB_SETUP_REQ *req);
-static uint8_t  usbd_audio_EP0_RxReady(void *pdev);
-static uint8_t  usbd_audio_DataIn     (void *pdev, uint8_t epnum);  //发出数据
-static uint8_t  usbd_audio_DataOut    (void *pdev, uint8_t epnum);  //收到数据
-static uint8_t  usbd_audio_SOF        (void *pdev);
-static uint8_t  usbd_audio_IN_Incplt (void  *pdev);
-static uint8_t  usbd_audio_OUT_Incplt (void  *pdev);  //收数据未成功
-
-/*********************************************
-   AUDIO Requests management functions
- *********************************************/
-static void AUDIOCLASS_REQ(void *pdev, USB_SETUP_REQ *req);
-static uint8_t  *USBD_audio_GetCfgDesc (uint8_t speed, uint16_t *length);
-
 
 //#define bitdepth 32
 #define bitdepth 24
@@ -48,27 +26,6 @@ uint8_t  AudioCtlReq = 0;
 uint8_t  AudioCtlCS = 0;
 
 
-static __IO uint32_t  usbd_audio_AltSet = 0;
-static uint8_t usbd_audio_CfgDesc[AUDIO_CONFIG_DESC_SIZE];
-
-/* AUDIO interface class callbacks structure */
-USBD_Class_cb_TypeDef  AUDIO_cb = 
-{
-  usbd_audio_Init,
-  usbd_audio_DeInit,
-  usbd_audio_Setup,
-  NULL, 		/* EP0 已发出 */
-  usbd_audio_EP0_RxReady,
-  usbd_audio_DataIn,
-  usbd_audio_DataOut,
-  usbd_audio_SOF,
-  usbd_audio_IN_Incplt,               /* ISO IN不成功 */
-  usbd_audio_OUT_Incplt,    /* ISO OUT不成功 */
-  USBD_audio_GetCfgDesc,
-#ifdef USB_OTG_HS_CORE  
-  USBD_audio_GetCfgDesc, /* use same config as per FS */
-#endif    
-};
 
 /* USB AUDIO device Configuration Descriptor */
 static uint8_t usbd_audio_CfgDesc[AUDIO_CONFIG_DESC_SIZE] =
@@ -259,113 +216,6 @@ u32 fbvalue, nInt,nFrac;
 }
 
 
-/**
-* @brief  usbd_audio_Init
-*         Initilaizes the AUDIO interface.
-* @param  pdev: device instance
-* @param  cfgidx: Configuration index
-* @retval status
-*/
-static uint8_t  usbd_audio_Init (void  *pdev, uint8_t cfgidx)
-{  
-  return USBD_OK;
-}
-
-/**
-* @brief  usbd_audio_Init
-*         DeInitializes the AUDIO layer.
-* @param  pdev: device instance
-* @param  cfgidx: Configuration index
-* @retval status
-*/
-static uint8_t  usbd_audio_DeInit (void  *pdev, uint8_t cfgidx)
-{ 
-
-  
-//  if (EVAL_AUDIO_DeInit() != USBD_OK)
-//  {
-//    return USBD_FAIL;
-//  }
-  
-  return USBD_OK;
-}
-
-/**
-  * @brief  usbd_audio_Setup
-  *         Handles the Audio control request parsing.
-  * @param  pdev: instance
-  * @param  req: usb requests
-  * @retval status
-  */
-static uint8_t  usbd_audio_Setup (void  *pdev, 
-                                  USB_SETUP_REQ *req)
-{
-  uint16_t len=USB_AUDIO_DESC_SIZ;
-  uint8_t  *pbuf=usbd_audio_CfgDesc + 18;
-  
-  switch (req->bmRequest & USB_REQ_TYPE_MASK)
-  {
-    /* AUDIO Class Requests -------------------------------*/
-  case USB_REQ_TYPE_CLASS :    
-        AUDIOCLASS_REQ(pdev, req);
-    break;
-
-    
-    /* Standard Requests -------------------------------*/
-  case USB_REQ_TYPE_STANDARD:
-    switch (req->bRequest)
-    {
-    case USB_REQ_GET_DESCRIPTOR: 
-      if( (req->wValue >> 8) == AUDIO_DESCRIPTOR_TYPE)
-      {
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
-        pbuf = usbd_audio_CfgDesc ;   
-#else
-        pbuf = usbd_audio_CfgDesc + 18;
-#endif 
-        len = MIN(USB_AUDIO_DESC_SIZ , req->wLength);
-      }
-      
-      USBD_CtlSendData (pdev, 
-                        pbuf,
-                        len);
-      break;
-      
-    case USB_REQ_GET_INTERFACE :
-      USBD_CtlSendData (pdev,(uint8_t *)&usbd_audio_AltSet,1);
-      break;
-      
-    case USB_REQ_SET_INTERFACE :		//switch alt settings
-      if ((uint8_t)(req->wValue) < AUDIO_TOTAL_IF_NUM)
-      {
-        usbd_audio_AltSet = (uint8_t)(req->wValue);
-
-			if (usbd_audio_AltSet == 1) {
-				alt_setting_now=usbd_audio_AltSet;
-				DCD_EP_Open(pdev, AUDIO_OUT_EP, AUDIO_OUT_PKTSIZE, USB_OTG_EP_ISOC);
-				DCD_EP_Open(pdev, AUDIO_IN_EP, 3, USB_OTG_EP_ISOC);
-				DCD_EP_PrepareRx(pdev , AUDIO_OUT_EP , (uint8_t*)IsocOutBuff , AUDIO_OUT_PKTSIZE );			
-				fb(working_samplerate);
-			}
-			else	//zero bandwidth
-			{
-				alt_setting_now=0;
-				DCD_EP_Close (pdev , AUDIO_OUT_EP);
-				DCD_EP_Close (pdev , AUDIO_IN_EP);
-			}
-
-      }
-      else
-      {
-        /* Call the error management function (command will be STALL) */
-        USBD_CtlError (pdev, req);
-      }
-      break;
-    }
-  }
-  return USBD_OK;
-}
-
 //audio class req
 static void AUDIOCLASS_REQ(void *pdev, USB_SETUP_REQ *req)
 { 
@@ -494,6 +344,112 @@ if (req_type == AUDIO_CONTROL_REQ  &&  unit == 0x2 ){
 	
 }
 
+
+/**
+* @brief  usbd_audio_Init
+*         Initilaizes the AUDIO interface.
+* @param  pdev: device instance
+* @param  cfgidx: Configuration index
+* @retval status
+*/
+static uint8_t  usbd_audio_Init (void  *pdev, uint8_t cfgidx)
+{  
+  return USBD_OK;
+}
+
+/**
+* @brief  usbd_audio_Init
+*         DeInitializes the AUDIO layer.
+* @param  pdev: device instance
+* @param  cfgidx: Configuration index
+* @retval status
+*/
+static uint8_t  usbd_audio_DeInit (void  *pdev, uint8_t cfgidx)
+{ 
+
+  
+//  if (EVAL_AUDIO_DeInit() != USBD_OK)
+//  {
+//    return USBD_FAIL;
+//  }
+  
+  return USBD_OK;
+}
+
+/**
+  * @brief  usbd_audio_Setup
+  *         Handles the Audio control request parsing.
+  * @param  pdev: instance
+  * @param  req: usb requests
+  * @retval status
+  */
+static uint8_t  usbd_audio_Setup (void  *pdev, 
+                                  USB_SETUP_REQ *req)
+{
+  uint16_t len=USB_AUDIO_DESC_SIZ;
+  uint8_t  *pbuf=usbd_audio_CfgDesc + 18;
+  
+  switch (req->bmRequest & USB_REQ_TYPE_MASK)
+  {
+    /* AUDIO Class Requests -------------------------------*/
+  case USB_REQ_TYPE_CLASS :    
+        AUDIOCLASS_REQ(pdev, req);
+    break;
+
+    
+    /* Standard Requests -------------------------------*/
+  case USB_REQ_TYPE_STANDARD:
+    switch (req->bRequest)
+    {
+    case USB_REQ_GET_DESCRIPTOR: 
+      if( (req->wValue >> 8) == AUDIO_DESCRIPTOR_TYPE)
+      {
+#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
+        pbuf = usbd_audio_CfgDesc ;   
+#else
+        pbuf = usbd_audio_CfgDesc + 18;
+#endif 
+        len = MIN(USB_AUDIO_DESC_SIZ , req->wLength);
+      }
+      
+      USBD_CtlSendData (pdev, 
+                        pbuf,
+                        len);
+      break;
+      
+    case USB_REQ_GET_INTERFACE :
+      USBD_CtlSendData (pdev,(uint8_t *)&alt_setting_now,1);
+      break;
+      
+    case USB_REQ_SET_INTERFACE :		//switch alt settings
+      if ((uint8_t)(req->wValue) < AUDIO_TOTAL_IF_NUM)
+      {
+
+			if ((uint8_t)(req->wValue) == 1) {
+				alt_setting_now=1;
+				DCD_EP_Open(pdev, AUDIO_OUT_EP, AUDIO_OUT_PKTSIZE, USB_OTG_EP_ISOC);
+				DCD_EP_Open(pdev, AUDIO_IN_EP, 3, USB_OTG_EP_ISOC);
+				DCD_EP_PrepareRx(pdev , AUDIO_OUT_EP , (uint8_t*)IsocOutBuff , AUDIO_OUT_PKTSIZE );			
+				fb(working_samplerate);
+			}
+			else	//zero bandwidth
+			{
+				alt_setting_now=0;
+				DCD_EP_Close (pdev , AUDIO_OUT_EP);
+				DCD_EP_Close (pdev , AUDIO_IN_EP);
+			}
+
+      }
+      else
+      {
+        /* Call the error management function (command will be STALL) */
+        USBD_CtlError (pdev, req);
+      }
+      break;
+    }
+  }
+  return USBD_OK;
+}
 
 
 //控制端点接收数据
@@ -733,3 +689,21 @@ static uint8_t  *USBD_audio_GetCfgDesc (uint8_t speed, uint16_t *length)
 }
 
 
+/* AUDIO interface class callbacks structure */
+USBD_Class_cb_TypeDef  AUDIO_cb = 
+{
+  usbd_audio_Init,
+  usbd_audio_DeInit,
+  usbd_audio_Setup,
+  NULL, 		/* EP0 已发出 */
+  usbd_audio_EP0_RxReady,
+  usbd_audio_DataIn,
+  usbd_audio_DataOut,
+  usbd_audio_SOF,
+  usbd_audio_IN_Incplt,               /* ISO IN不成功 */
+  usbd_audio_OUT_Incplt,    /* ISO OUT不成功 */
+  USBD_audio_GetCfgDesc,
+#ifdef USB_OTG_HS_CORE  
+  USBD_audio_GetCfgDesc, /* use same config as per FS */
+#endif    
+};
