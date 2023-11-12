@@ -5,6 +5,9 @@
 Now usb rx endpoint CRC is disabled,it works much better.beacuse CRC only detect error but no re-transmission.    
 also add Orange color LED indicate for lost packet warning.    
 
+###### 2023.11.12  
+ - add: probably missing dma reset before play  
+  
 ###### 2023.10.3
 - add UART log ring buffer ,get out of 'while' when print
 - hw ad1955 is ok    

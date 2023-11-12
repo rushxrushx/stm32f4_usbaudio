@@ -286,8 +286,8 @@ void I2S_DMA_Init()
 	NVIC_InitTypeDef   NVIC_InitStructure;
 		
 	NVIC_InitStructure.NVIC_IRQChannel = AUDIO_I2S_DMA_IRQ; 
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x00;//抢占优先级0
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;//子优先级0
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;//抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);//配置
 
@@ -337,7 +337,7 @@ void EVAL_AUDIO_Play(void)
 	DMA_Cmd(AUDIO_I2S_DMA_STREAM,ENABLE);
 	I2S_Reconf(working_samplerate);
 	DAC_EN;
-	LEDON;
+	//LEDON;
 	audiostatus=1;
 }
  
@@ -348,7 +348,7 @@ void EVAL_AUDIO_Stop(void)
 	RCC_APB1PeriphClockCmd(AUDIO_I2S_SPI_SPIX, DISABLE);//停止SPI2时钟，无需等待
 	RCC_AHB1PeriphClockCmd(AUDIO_I2S_DMA_CLOCK,DISABLE);//停止DMA1时钟，无需等待
 	DAC_DIS;
-	LEDOFF;
+	//LEDOFF;
 	audiostatus=0;
 	if (alt_setting_now==0){overrun_counter=0;underrun_counter=0;}
 }

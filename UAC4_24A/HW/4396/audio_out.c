@@ -2,6 +2,7 @@
 #include "gpio.h"
 #include "spi1.h"
 #include "audio_out.h"
+#include "stdio.h"
  
 vu8 audiostatus=0;							//bit0:0,暂停播放;1,继续播放  
 vu32 working_samplerate=44100;	//当前采样频率 
@@ -286,8 +287,8 @@ void I2S_DMA_Init()
 	NVIC_InitTypeDef   NVIC_InitStructure;
 		
 	NVIC_InitStructure.NVIC_IRQChannel = AUDIO_I2S_DMA_IRQ; 
-	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x00;//抢占优先级0
-	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0x00;//子优先级0
+	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;//抢占优先级
+	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 1;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;//使能外部中断通道
 	NVIC_Init(&NVIC_InitStructure);//配置
 
@@ -296,12 +297,16 @@ void I2S_DMA_Init()
 //I2S2 TX DMA配置
 void I2S2_DMA_Reconf()
 {  
+u32 i=0;
 	DMA_InitTypeDef  DMA_InitStructure;
 	
 	RCC_AHB1PeriphClockCmd(AUDIO_I2S_DMA_CLOCK,ENABLE);//DMA1时钟使能 
+	RCC_AHB1PeriphResetCmd(AUDIO_I2S_DMA_CLOCK, ENABLE);//start reset 20231112 add missing dma reset
+	RCC_AHB1PeriphResetCmd(AUDIO_I2S_DMA_CLOCK, DISABLE);//end reset
 	
 	DMA_DeInit(AUDIO_I2S_DMA_STREAM);
-	while (DMA_GetCmdStatus(AUDIO_I2S_DMA_STREAM) != DISABLE){}//等待DMA1_Stream1可配置 
+	while (DMA_GetCmdStatus(AUDIO_I2S_DMA_STREAM) != DISABLE)
+	{i++;if (i>100000){printf("init DMA timeout!\r\n");}}//等待DMA1_Stream1可配置 
 
   DMA_InitStructure.DMA_Channel = AUDIO_I2S_DMA_CHANNEL;  //通道0 SPI3_TX通道 
   DMA_InitStructure.DMA_PeripheralBaseAddr = AUDIO_I2S_SPI_ADDR;//外设地址
@@ -337,7 +342,7 @@ void EVAL_AUDIO_Play(void)
 	DMA_Cmd(AUDIO_I2S_DMA_STREAM,ENABLE);
 	I2S_Reconf(working_samplerate);
 	DAC_EN;
-	LEDON;
+	//LEDON;
 	audiostatus=1;
 }
  
@@ -348,7 +353,7 @@ void EVAL_AUDIO_Stop(void)
 	RCC_APB1PeriphClockCmd(AUDIO_I2S_SPI_SPIX, DISABLE);//停止SPI2时钟，无需等待
 	RCC_AHB1PeriphClockCmd(AUDIO_I2S_DMA_CLOCK,DISABLE);//停止DMA1时钟，无需等待
 	DAC_DIS;
-	LEDOFF;
+	//LEDOFF;
 	audiostatus=0;
 	if (alt_setting_now==0){overrun_counter=0;underrun_counter=0;}
 }

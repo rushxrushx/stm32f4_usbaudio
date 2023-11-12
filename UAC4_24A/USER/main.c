@@ -73,9 +73,12 @@ int main(void)
 			
 			}
 			if(fb_success<100){rx_incomplt=0;loscount=0;}//lost when start play is ignored.
+			
 			if ((overrun_counter>0)||(underrun_counter>0)) {LED_RED;}//error LED mean out of buffer.
-			else if(rx_incomplt>loscount)	{LED_YEL;}//warn LED mean lost package.
-			else LEDON;
+			else {
+				if(rx_incomplt>loscount)	{LED_YEL;}//warn LED mean lost package.
+				else LEDON;
+				}
 			
 		}
 		else
