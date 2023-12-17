@@ -526,14 +526,9 @@
           <GroupName>hw</GroupName>
           <Files>
             <File>
-              <FileName>gpio.c</FileName>
+              <FileName>board.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\HW\V4W\gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>audio_out.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HW\V4W\audio_out.c</FilePath>
+              <FilePath>.\HW\V4W\board.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -559,6 +554,11 @@
               <FileName>usbd_audio_core.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\USER\usbd_audio_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>audio_out.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\audio_out.c</FilePath>
             </File>
           </Files>
         </Group>

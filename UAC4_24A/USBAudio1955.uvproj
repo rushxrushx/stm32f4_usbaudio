@@ -526,19 +526,14 @@
           <GroupName>hw</GroupName>
           <Files>
             <File>
-              <FileName>audio_out.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HW\1955\audio_out.c</FilePath>
-            </File>
-            <File>
-              <FileName>gpio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HW\1955\gpio.c</FilePath>
-            </File>
-            <File>
               <FileName>spi1.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\HW\1955\spi1.c</FilePath>
+            </File>
+            <File>
+              <FileName>board.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\HW\1955\board.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -564,6 +559,11 @@
               <FileName>usbd_audio_core.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\USER\usbd_audio_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>audio_out.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\audio_out.c</FilePath>
             </File>
           </Files>
         </Group>

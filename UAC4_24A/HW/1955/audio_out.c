@@ -300,6 +300,8 @@ void I2S2_DMA_Reconf()
 	DMA_InitTypeDef  DMA_InitStructure;
 	
 	RCC_AHB1PeriphClockCmd(AUDIO_I2S_DMA_CLOCK,ENABLE);//DMA1时钟使能 
+	RCC_AHB1PeriphResetCmd(AUDIO_I2S_DMA_CLOCK, ENABLE);//start reset 20231112 add missing dma reset
+	RCC_AHB1PeriphResetCmd(AUDIO_I2S_DMA_CLOCK, DISABLE);//end reset
 	
 	DMA_DeInit(AUDIO_I2S_DMA_STREAM);
 	while (DMA_GetCmdStatus(AUDIO_I2S_DMA_STREAM) != DISABLE){}//等待DMA1_Stream1可配置 

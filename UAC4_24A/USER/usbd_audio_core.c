@@ -1,6 +1,6 @@
 #include "usbd_audio_core.h"
 #include "audio_out.h"
-#include "gpio.h"
+#include "board.h"
 
 //#define bitdepth 32
 #define bitdepth 24

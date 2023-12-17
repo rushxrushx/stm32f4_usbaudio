@@ -166,7 +166,7 @@
             <UseTargetDll>1</UseTargetDll>
             <UseExternalTool>0</UseExternalTool>
             <RunIndependent>0</RunIndependent>
-            <UpdateFlashBeforeDebugging>1</UpdateFlashBeforeDebugging>
+            <UpdateFlashBeforeDebugging>0</UpdateFlashBeforeDebugging>
             <Capability>1</Capability>
             <DriverSelection>4097</DriverSelection>
           </Flash1>
@@ -217,11 +217,11 @@
             <hadIRAM>1</hadIRAM>
             <hadXRAM>0</hadXRAM>
             <uocXRam>0</uocXRam>
-            <RvdsVP>2</RvdsVP>
+            <RvdsVP>1</RvdsVP>
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
-            <useUlib>0</useUlib>
+            <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <RoSelD>3</RoSelD>
@@ -526,19 +526,9 @@
           <GroupName>hw</GroupName>
           <Files>
             <File>
-              <FileName>audio_out.c</FileName>
+              <FileName>board.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\HW\4396\audio_out.c</FilePath>
-            </File>
-            <File>
-              <FileName>gpio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HW\4396\gpio.c</FilePath>
-            </File>
-            <File>
-              <FileName>spi1.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\HW\4396\spi1.c</FilePath>
+              <FilePath>.\HW\4396\board.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -564,6 +554,11 @@
               <FileName>usbd_audio_core.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\USER\usbd_audio_core.c</FilePath>
+            </File>
+            <File>
+              <FileName>audio_out.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\USER\audio_out.c</FilePath>
             </File>
           </Files>
         </Group>

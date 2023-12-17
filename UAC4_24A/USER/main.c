@@ -1,5 +1,5 @@
 #include "usart.h"   
-#include "gpio.h"  
+#include "board.h"  
 #include "usbd_audio_core.h"
 #include "audio_out.h"
 #include "usbd_usr.h"

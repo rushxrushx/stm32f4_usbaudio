@@ -1,9 +1,12 @@
 // L1/L2 HW
 // BOARD FILE
 
-#include "gpio.h" 
-#include "spi1.h" 
+#include "board.h" 
 
+void DAC_init(void)
+{
+
+}
 
 void Board_Init(void)
 {    	 
@@ -34,7 +37,6 @@ void Board_Init(void)
   PCout(7)=0;
   
   
-	SPI1_Init();//////add 20210614 for ad1955
 
 //reset DAC
   DAC_DIS;

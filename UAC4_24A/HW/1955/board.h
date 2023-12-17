@@ -18,11 +18,10 @@
 #define LED2_OFF	LED3=0;LED4=0;
 //根据DAC配置
 
-#define DAC_EN	PAout(3)=1;\
-				if(working_samplerate>48000) ;\
-				else spi_set(0x0201);		
+#define I2S_STANDARD I2S_Standard_MSB
 
-//0x0201:44/48khz-->set 512fs mclk
+#define DAC_EN	DAC_Init();		
+
 
 #define DAC_DIS	PAout(3)=0;
 

@@ -88,7 +88,6 @@ void uart_init(u32 bound){
 	
 	USART_ClearFlag(USART1, USART_FLAG_TC);
 	
-	//USART_ITConfig(USART1, USART_IT_TXE, ENABLE);//开启相关中断
 	
 #if EN_USART1_RX	
 	USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);//开启相关中断
@@ -126,15 +125,12 @@ void tx_fill()
 	tx_runing=0;
 	}
 	
-
-
-
 }
 
 
 //////////////////////////////////////////////////////////////////
 //加入以下代码,支持printf函数,而不需要选择use MicroLIB	  
-#if 1
+#if 0
 #pragma import(__use_no_semihosting)             
 //标准库需要的支持函数                 
 struct __FILE 
@@ -144,15 +140,18 @@ struct __FILE
 
 FILE __stdout;       
 //定义_sys_exit()以避免使用半主机模式    
-_sys_exit(int x) 
+void _sys_exit(int x) 
 { 
 	x = x; 
 } 
+
+#endif
+
+//1:使用ring buf
+#if 0
 //重定义fputc函数 
 int fputc(int ch, FILE *f)
 { 	
-	//while((USART1->SR&0X40)==0);//循环发送,直到发送完毕   
-	//USART1->DR = (u8) ch;      
 	
 	vu8 next_p;
 	//计算即将写入的位置
@@ -170,14 +169,20 @@ int fputc(int ch, FILE *f)
 	}
 	
 	//开启发送
-	if(tx_runing==0) USART_ITConfig(USART1, USART_IT_TXE, ENABLE);;//tx_fill();
+	if(tx_runing==0) USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
 	
 	return ch;
 }
-
-
-
+#else
+//重定义fputc函数 
+int fputc(int ch, FILE *f)
+{ 	
+	while((USART1->SR&0X40)==0);//循环发送,直到发送完毕   
+	USART1->DR = (u8) ch;      
+	return ch;
+}
 #endif
+
 
 void USART1_IRQHandler(void)                	//串口1中断服务程序
 {

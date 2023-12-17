@@ -1,8 +1,5 @@
-#include "gpio.h" 
+#include "board.h" 
 
-
-//v4w白色小板
-#if 1
 void Board_Init(void)
 {    	 
   GPIO_InitTypeDef  GPIO_InitStructure;
@@ -26,7 +23,7 @@ void Board_Init(void)
   GPIO_Init(GPIOB, &GPIO_InitStructure);
 
 }
-#endif
+
 
 
 

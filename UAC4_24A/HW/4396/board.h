@@ -2,6 +2,9 @@
 #define __LED_H
 #include "sys.h"
 
+//4396
+#define I2S_STANDARD I2S_Standard_MSB
+
 //平台通用LED端口定义
 #define LED1 PBout(5)
 #define LED2 PBout(6)

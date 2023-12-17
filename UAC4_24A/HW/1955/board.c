@@ -1,9 +1,16 @@
-// L1/L2 HW
-// BOARD FILE
 
-#include "gpio.h" 
+#include "board.h" 
 #include "spi1.h" 
 
+#include "audio_out.h"
+
+void DAC_Init(void)
+{
+	PAout(3)=1;
+	if(working_samplerate>48000) ;
+//0x0201:44/48khz-->set 512fs mclk
+	else spi_set(0x0201);	
+}
 
 void Board_Init(void)
 {    	 
