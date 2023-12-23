@@ -217,11 +217,11 @@
             <hadIRAM>1</hadIRAM>
             <hadXRAM>0</hadXRAM>
             <uocXRam>0</uocXRam>
-            <RvdsVP>2</RvdsVP>
+            <RvdsVP>1</RvdsVP>
             <hadIRAM2>0</hadIRAM2>
             <hadIROM2>0</hadIROM2>
             <StupSel>8</StupSel>
-            <useUlib>0</useUlib>
+            <useUlib>1</useUlib>
             <EndSel>0</EndSel>
             <uLtcg>0</uLtcg>
             <RoSelD>3</RoSelD>
@@ -362,7 +362,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F401xx,USE_STDPERIPH_DRIVER,STM32F4XX,USE_USB_OTG_FS</Define>
               <Undefine></Undefine>
-              <IncludePath>HW\4396;CORE;USER;ALIENTEK;FWLIB\inc;OTGLIB\STM32_USB_OTG_Driver\inc;OTGLIB\STM32_USB_Device_Library\Core\inc</IncludePath>
+              <IncludePath>HW\1955;CORE;USER;ALIENTEK;FWLIB\inc;OTGLIB\STM32_USB_OTG_Driver\inc;OTGLIB\STM32_USB_Device_Library\Core\inc</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

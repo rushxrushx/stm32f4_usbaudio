@@ -2,10 +2,12 @@
 #include "board.h" 
 #include "spi1.h" 
 
-#include "audio_out.h"
 
 void DAC_Init(void)
 {
+
+#include "audio_out.h"
+
 	PAout(3)=1;
 	if(working_samplerate>48000) ;
 //0x0201:44/48khz-->set 512fs mclk

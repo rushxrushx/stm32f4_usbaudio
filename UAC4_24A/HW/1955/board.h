@@ -35,5 +35,7 @@
 #define SEL_NONE	PAout(8)=1;PCout(6)=0;PCout(7)=0;
 
 
-void Board_Init(void);//初始化		 				    
+void Board_Init(void);//初始化	
+void DAC_Init(void);
+	 				    
 #endif
