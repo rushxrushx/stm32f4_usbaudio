@@ -7,11 +7,16 @@
 
 USB_OTG_CORE_HANDLE USB_OTG_dev;
 extern vu8 bDeviceState;		//USB连接 情况
+u32 cnt=0;
+
+void SysTick_Handler(void)
+{
+	cnt++;
+}
 
 int main(void)
 {        
 	u8 Divece_STA=0XFF;
-	u32 cnt=0;
 	u32 los_cnt=0;
 	u32 loscount=0;
 	
@@ -19,6 +24,7 @@ int main(void)
 	SEL_NONE;
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);//设置系统中断优先级分组2
 	uart_init(115200);		//初始化串口波特率为115200
+	SysTick_Config(SystemCoreClock / 1000 * 20);//20ms
 	LED2_RED;
 	APWR_EN;
 		
@@ -54,8 +60,8 @@ int main(void)
 
 		if(alt_setting_now!=0)
 		{
-			cnt++;
-			if(cnt>100000)
+			//cnt++;
+			if(cnt>50)//1000ms
 			{
 			cnt=0;
 			printf("\rfbOk:%d,",fb_success);
@@ -65,12 +71,12 @@ int main(void)
 			printf("ov:%d,",overrun_counter);
 			printf("UD:%d,",underrun_counter);
 			printf("    ");
-			los_cnt++;
-			if(los_cnt>1000){
-			los_cnt=0;
-			loscount=rx_incomplt;
-			}
 			
+			if(loscount!=rx_incomplt){
+				los_cnt++;
+				if(los_cnt>60){los_cnt=0;loscount=rx_incomplt;}//1 minute to reset LED
+				}
+				
 			}
 			if(fb_success<100){rx_incomplt=0;loscount=0;}//lost when start play is ignored.
 			

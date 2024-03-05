@@ -1,12 +1,18 @@
 ## CHEAPEST USB ASYNC AUDIO1 USING ST32F401RB
 
 ###### knows bugs:
-- 1,if USB cable/plug is poor quality,audio may become noise when playing,and must stop or re-plug to fix it.  
-Now usb rx endpoint CRC is disabled,it works much better.beacuse CRC only detect error but no re-transmission.    
-also add Orange color LED indicate for lost packet warning.    
+- none.
+- 1,noise bug fixed in v20231112,noise bug is not cause by data lost, its cause by i2s itself.
+- time between i2s stop and restart must have delay.
 
+###### 2024.3.5  
+- audio buffer size veriable.
+- 6K buffer for 88K 96K , reduce underrun.
+- main: use systick timer.
+ 
 ###### 2023.11.12  
- - add: probably missing dma reset before play  
+- add: probably missing dma reset before play
+- sequence changed: time between i2s stop and restart must have delay. 
   
 ###### 2023.10.3
 - add UART log ring buffer ,get out of 'while' when print

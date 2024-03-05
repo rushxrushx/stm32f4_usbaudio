@@ -8,8 +8,9 @@ vu32 working_samplerate=44100;	//当前采样频率
 vu32 Play_ptr=0;								//即将播放的音频帧缓冲编号
 vu32 Write_ptr=0;							//当前保存到的音频缓冲编号 
 u32 underrun_counter=0;
-u32 const i2s_BUFSIZE=4000;								
-u32 i2s_buf[i2s_BUFSIZE+2]; 	//音频缓冲
+u32 i2s_BUFSIZE;//runtime buf size
+u32 const i2s_BUFSIZEA=6000;		//ALL buf size						
+u32 i2s_buf[i2s_BUFSIZEA+2]; 	//音频缓冲
 void audio_i2s_dma_callback(void);
 
 

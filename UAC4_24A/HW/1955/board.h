@@ -18,7 +18,7 @@
 #define LED2_OFF	LED3=0;LED4=0;
 //根据DAC配置
 
-#define I2S_STANDARD I2S_Standard_MSB
+//#define I2S_STANDARD I2S_Standard_MSB
 
 #define DAC_EN	DAC_Init();		
 

@@ -437,6 +437,12 @@ static uint8_t  usbd_audio_Setup (void  *pdev,
 				alt_setting_now=0;
 				DCD_EP_Close (pdev , AUDIO_OUT_EP);
 				DCD_EP_Close (pdev , AUDIO_IN_EP);
+				
+				EVAL_AUDIO_Stop();//停止播放，并清空缓存，防止显示红灯
+				Play_ptr=0;
+				Write_ptr=0;
+				overrun_counter=0;
+				underrun_counter=0;
 			}
 
       }
@@ -479,10 +485,10 @@ u32 tmpfreq=0;
 		Write_ptr=0;
 		overrun_counter=0;
 		underrun_counter=0;
-		if(tmpfreq==44100) working_samplerate=44100;
-		if(tmpfreq==96000) working_samplerate=96000;
-		if(tmpfreq==88200) working_samplerate=88200;
-		if(tmpfreq==48000) working_samplerate=48000;
+		if(tmpfreq==44100) {working_samplerate=44100;i2s_BUFSIZE=4000;}
+		if(tmpfreq==48000) {working_samplerate=48000;i2s_BUFSIZE=4000;}
+		if(tmpfreq==96000) {working_samplerate=96000;i2s_BUFSIZE=6000;}
+		if(tmpfreq==88200) {working_samplerate=88200;i2s_BUFSIZE=6000;}
 		 
 	}
 	/* Reset the AudioCtlCmd variable to prevent re-entering this function */
@@ -590,7 +596,7 @@ vu16 nextbuf;
 	else data_remain = i2s_BUFSIZE - Play_ptr + Write_ptr;
 
 //如果目前是停止状态，有一半容量开启播放
-	if ( (audiostatus==0) && (data_remain > i2s_BUFSIZE/2 ) ) EVAL_AUDIO_Play();
+	if ( (audiostatus==0) && (data_remain > i2s_BUFSIZE/3*2 ) ) EVAL_AUDIO_Play();
 	
 	if (data_remain > i2s_BUFSIZE/3*2 ) {fb(working_samplerate-100);}//like 44000
 	else if (data_remain > i2s_BUFSIZE/2*1 ) {fb(working_samplerate);}//like 44100
@@ -625,6 +631,7 @@ u16 count=working_samplerate/1000;
 
 	rx_incomplt++;
 	
+	if ( audiostatus!=0 ){	//zero fill dummy package
 
 	for (i=0; i<count; i++ ) 
 	{
@@ -647,16 +654,7 @@ u16 count=working_samplerate/1000;
 		}
 	}
 
-	//计算环形数据容量
-	if (Write_ptr > Play_ptr) data_remain = Write_ptr - Play_ptr;
-	else data_remain = i2s_BUFSIZE - Play_ptr + Write_ptr;
-
-//如果目前是停止状态，有一半容量开启播放
-	if ( (audiostatus==0) && (data_remain > i2s_BUFSIZE/2 ) ) EVAL_AUDIO_Play();
-	
-	if (data_remain > i2s_BUFSIZE/3*2 ) {fb(working_samplerate-100);}//like 44000
-	else if (data_remain > i2s_BUFSIZE/2*1 ) {fb(working_samplerate);}//like 44100
-	else {fb(working_samplerate+100);}//like 44200
+	}
 	
 	DCD_EP_PrepareRx(pdev , AUDIO_OUT_EP , (uint8_t*)IsocOutBuff , AUDIO_OUT_PKTSIZE ); 
   return USBD_OK;

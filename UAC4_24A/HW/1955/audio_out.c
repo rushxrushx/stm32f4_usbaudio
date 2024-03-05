@@ -353,7 +353,10 @@ void EVAL_AUDIO_Stop(void)
 	DAC_DIS;
 	LEDOFF;
 	audiostatus=0;
-	if (alt_setting_now==0){overrun_counter=0;underrun_counter=0;}
+	//if (alt_setting_now==0){
+	//		overrun_counter=0;underrun_counter=0;
+	//		Play_ptr=0;Write_ptr=0;
+	//		}
 }
 
 
